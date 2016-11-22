@@ -24,8 +24,16 @@ int main(int argc, char** argv) {
     {
         editor = new Editor();
     }
-    editor->printBuffer();
-    getch();
+
+    while (editor->getMode() != 'x')
+    {
+//        editor->updateStatus();
+        editor->printBuffer();
+        int chr = getch();
+        editor->handleInput(chr);
+        refresh();
+    }
+    refresh();
     endwin();
 
     return 0;
@@ -34,4 +42,6 @@ int main(int argc, char** argv) {
 void initNcurses() {
     initscr();
     noecho();
+
+    keypad(stdscr, true);
 }
