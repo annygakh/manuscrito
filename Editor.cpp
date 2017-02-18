@@ -6,6 +6,7 @@
 #include "Log.h"
 #include <ncurses.h>
 #include <algorithm>
+#include <sstream>
 
 Editor::Editor()
     : m_mode('n')
@@ -30,7 +31,20 @@ void Editor::printBuffer()
     for (std::string line : m_buffer->m_lines)
     {
         move(y, x);
-        printw(line.c_str());
+        if (y == m_y && m_mode == 'i') {
+            printw(line.substr(0, m_x).c_str());
+            if (line.length() > m_x + 1) {
+                addch(line.at(m_x) | A_BLINK);
+                Log::instance()->logMessage("m_y: %d Curr length: %d, end_length: %d\n", m_x, line.length(), line.length() - m_x - 1);
+
+                printw(line.substr(m_x + 1, line.length() - m_x - 1).c_str());
+            }
+            Log::instance()->logMessage("here\n");
+        } else {
+            Log::instance()->logMessage("and here\n");
+
+            printw(line.c_str());
+        }
         y++;
     }
     move(m_y, m_x);
@@ -39,7 +53,6 @@ void Editor::printBuffer()
 
 void Editor::handleInput(int chr)
 {
-//    Log::instance()->logMessage("Chr %c\n", chr);
     switch (chr)
     {
         case KEY_LEFT:
@@ -51,7 +64,7 @@ void Editor::handleInput(int chr)
             moveRight();
             return;
         case KEY_DOWN:
-            Log::instance()->logMessage("Moving down\n");
+            Log::instance()->logMessage("Moving dowssssn\n");
             moveDown();
             return;
         case KEY_UP:
@@ -84,6 +97,10 @@ void Editor::handleInputInNormalMode(int chr)
         case 'x':
             m_mode = 'x';
             break;
+        case 'i':
+            m_mode = 'i';
+            Log::instance()->logMessage("Insert mode \n");
+            break;
         default:
             // TODO add more
             break;
@@ -93,6 +110,16 @@ void Editor::handleInputInNormalMode(int chr)
 
 void Editor::handleInputInInsertMode(int chr)
 {
+    Log::instance()->logMessage("Curr y: %d curr_x: %d\n", m_y, m_x);
+
+
+    std::stringstream ss;
+    ss << (char) chr;
+    std::string curr_line = m_buffer->m_lines[m_y];
+
+    m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
+    m_x++;
+
 
 }
 

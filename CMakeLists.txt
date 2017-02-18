@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 project(manuscrito)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g")
 
 set(SOURCE_FILES main.cpp Editor.cpp Editor.h Buffer.cpp Buffer.h)
 add_executable(manuscrito ${SOURCE_FILES})
