@@ -3,3 +3,8 @@ CMakeCache.txt
 CMakeFiles/
 Makefile
 *.cmake
+*.o
+*.txt
+*.out
+*.plist
+*dSYM/
