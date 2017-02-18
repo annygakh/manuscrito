@@ -27,7 +27,6 @@ Editor::Editor(std::string filename)
 void Editor::printBuffer()
 {
     int y = 0;
-    int x = m_x;
 
     for (std::string line : m_buffer->m_lines)
     {
@@ -39,9 +38,6 @@ void Editor::printBuffer()
             if (line.length() > m_x )
             {
                 addch(line.at(m_x) | A_REVERSE);
-                Log::instance()->logMessage("m_y: %d Curr length: %d, end_length: %d\n", m_x,
-                                            line.length(), line.length() - m_x - 1);
-
                 printw(line.substr(m_x + 1, line.length() - m_x - 1).c_str());
             }
         }
@@ -115,7 +111,6 @@ void Editor::handleInputInInsertMode(int chr)
     std::stringstream ss;
     char chrToInsert = (char) chr;
     ss << chrToInsert;
-    // "What\n??is your name?"
     std::string curr_line = m_buffer->m_lines[m_y];
     if (chrToInsert == '\n')
     {
@@ -132,10 +127,6 @@ void Editor::handleInputInInsertMode(int chr)
         std::string string = m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
         m_x++;
     }
-    Log::instance()->logMessage("Current chr to insert: %s\n", ss.str().c_str());
-
-
-
 
 }
 
@@ -145,22 +136,18 @@ void Editor::moveUp()
     int minY = 0;
     if (m_y > minY)
     {
-        Log::instance()->logMessage(" Editor::moveUp: first if\n");
         // if the line above is shorter then current line
         int maxXlineAbove = m_buffer->m_lines[m_y - 1].length() - 1;
         if (m_x > maxXlineAbove)
         {
-            Log::instance()->logMessage("Line above is shorter\n");
             m_x = maxXlineAbove;
         }
         m_y = m_y - 1;
-        Log::instance()->logMessage("After moving up current m_y: %d\n", m_y);
     }
     else
     {
         m_y = 0;
     }
-    Log::instance()->logMessage("Moving to: m_y=%d m_x=%d\n", m_y, m_x);
     move(m_y, m_x);
 }
 
@@ -178,14 +165,12 @@ void Editor::moveDown()
     {
         // if the line below is shorter then current line
         int maxXlineBelow = m_buffer->m_lines[m_y + 1].length() - 1;
-        Log::instance()->logMessage("Length line below: %d\n",m_buffer->m_lines[m_y + 1].length()  );
         if (m_x > maxXlineBelow)
         {
             m_x = maxXlineBelow;
         }
         m_y = newY;
     }
-    Log::instance()->logMessage("Going to move to m_y=%d m_x=%d\n", m_y, m_x);
     move(m_y, m_x);
 }
 
