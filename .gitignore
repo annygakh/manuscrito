@@ -1,5 +1,4 @@
 .idea/*
-Makefile
 *.o
 *.txt
 *.out
