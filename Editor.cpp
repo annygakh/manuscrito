@@ -26,23 +26,27 @@ Editor::Editor(std::string filename)
 
 void Editor::printBuffer()
 {
-    int x = 0, y = 0;
+    int y = 0;
+    int x = m_x;
 
     for (std::string line : m_buffer->m_lines)
     {
-        move(y, x);
-        if (y == m_y && m_mode == 'i') {
+        move(y, 0);
+        clrtoeol();
+        if (y == m_y && m_mode == 'i')
+        {
             printw(line.substr(0, m_x).c_str());
-            if (line.length() > m_x + 1) {
-                addch(line.at(m_x) | A_BLINK);
-                Log::instance()->logMessage("m_y: %d Curr length: %d, end_length: %d\n", m_x, line.length(), line.length() - m_x - 1);
+            if (line.length() > m_x )
+            {
+                addch(line.at(m_x) | A_REVERSE);
+                Log::instance()->logMessage("m_y: %d Curr length: %d, end_length: %d\n", m_x,
+                                            line.length(), line.length() - m_x - 1);
 
                 printw(line.substr(m_x + 1, line.length() - m_x - 1).c_str());
             }
-            Log::instance()->logMessage("here\n");
-        } else {
-            Log::instance()->logMessage("and here\n");
-
+        }
+        else
+        {
             printw(line.c_str());
         }
         y++;
@@ -74,8 +78,6 @@ void Editor::handleInput(int chr)
         default:
             break;
     }
-
-    Log::instance()->logMessage("Chr %c\n", chr);
 
     switch (m_mode)
     {
@@ -110,15 +112,29 @@ void Editor::handleInputInNormalMode(int chr)
 
 void Editor::handleInputInInsertMode(int chr)
 {
-    Log::instance()->logMessage("Curr y: %d curr_x: %d\n", m_y, m_x);
-
-
     std::stringstream ss;
-    ss << (char) chr;
+    char chrToInsert = (char) chr;
+    ss << chrToInsert;
+    // "What\n??is your name?"
     std::string curr_line = m_buffer->m_lines[m_y];
+    if (chrToInsert == '\n')
+    {
+        std::string stringBeforeEnter = curr_line.substr(0, m_x );
+//        stringBeforeEnter.append(ss.str());
+        std::string stringAfterEnter = curr_line.substr(m_x);
+        m_buffer->m_lines[m_y] = stringBeforeEnter;
+        m_buffer->m_lines.insert(m_buffer->m_lines.begin() + m_y + 1, stringAfterEnter);
+        m_y++;
+        m_x = 0;
+    }
+    else
+    {
+        std::string string = m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
+        m_x++;
+    }
+    Log::instance()->logMessage("Current chr to insert: %s\n", ss.str().c_str());
 
-    m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
-    m_x++;
+
 
 
 }
@@ -129,26 +145,31 @@ void Editor::moveUp()
     int minY = 0;
     if (m_y > minY)
     {
+        Log::instance()->logMessage(" Editor::moveUp: first if\n");
         // if the line above is shorter then current line
         int maxXlineAbove = m_buffer->m_lines[m_y - 1].length() - 1;
         if (m_x > maxXlineAbove)
         {
+            Log::instance()->logMessage("Line above is shorter\n");
             m_x = maxXlineAbove;
         }
         m_y = m_y - 1;
+        Log::instance()->logMessage("After moving up current m_y: %d\n", m_y);
     }
     else
     {
         m_y = 0;
     }
+    Log::instance()->logMessage("Moving to: m_y=%d m_x=%d\n", m_y, m_x);
     move(m_y, m_x);
 }
 
 void Editor::moveDown()
 {
-    int maxBufferLines = m_buffer->m_lines.size() - 1;
-    int maxScreenSize = LINES - 1;
+    int maxBufferLines = m_buffer->m_lines.size();
+    int maxScreenSize = LINES;
     int newY = m_y + 1;
+    Log::instance()->logMessage("buffer_size: %d LINES: %d, new_y: %d\n", m_buffer->m_lines.size(), LINES, newY);
     if (newY >= maxBufferLines || newY >= maxScreenSize) // TODO remove '=' by removing -1 from above variables
     {
         m_y = std::min(maxBufferLines, maxScreenSize);
@@ -157,12 +178,14 @@ void Editor::moveDown()
     {
         // if the line below is shorter then current line
         int maxXlineBelow = m_buffer->m_lines[m_y + 1].length() - 1;
+        Log::instance()->logMessage("Length line below: %d\n",m_buffer->m_lines[m_y + 1].length()  );
         if (m_x > maxXlineBelow)
         {
             m_x = maxXlineBelow;
         }
         m_y = newY;
     }
+    Log::instance()->logMessage("Going to move to m_y=%d m_x=%d\n", m_y, m_x);
     move(m_y, m_x);
 }
 
@@ -185,9 +208,9 @@ void Editor::moveRight()
 {
     int newX = m_x + 1;
     int maxLineSize = m_buffer->m_lines[m_y].length();
-    if (newX > maxLineSize)
+    if (newX >= maxLineSize)
     {
-        m_x = maxLineSize;
+        m_x = maxLineSize - 1;
         // TODO allow wrapping as a feature
     }
     else
