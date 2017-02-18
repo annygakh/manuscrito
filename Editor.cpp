@@ -138,9 +138,17 @@ void Editor::moveUp()
     {
         // if the line above is shorter then current line
         int maxXlineAbove = m_buffer->m_lines[m_y - 1].length() - 1;
-        if (m_x > maxXlineAbove)
+        if (maxXlineAbove == -1)
         {
+            m_x = 0;
+        }
+        else if (m_x > maxXlineAbove)
+        {
+
             m_x = maxXlineAbove;
+        }
+        else
+        {
         }
         m_y = m_y - 1;
     }
@@ -157,7 +165,9 @@ void Editor::moveDown()
     int maxScreenSize = LINES;
     int newY = m_y + 1;
     Log::instance()->logMessage("buffer_size: %d LINES: %d, new_y: %d\n", m_buffer->m_lines.size(), LINES, newY);
-    if (newY >= maxBufferLines || newY >= maxScreenSize) // TODO remove '=' by removing -1 from above variables
+    // TODO remove '=' by removing -1 from above variables
+    bool outsideBounds = newY >= maxBufferLines || newY >= maxScreenSize;
+    if (outsideBounds)
     {
         m_y = std::min(maxBufferLines, maxScreenSize);
     }
@@ -165,7 +175,11 @@ void Editor::moveDown()
     {
         // if the line below is shorter then current line
         int maxXlineBelow = m_buffer->m_lines[m_y + 1].length() - 1;
-        if (m_x > maxXlineBelow)
+        if (maxXlineBelow == -1)
+        {
+            m_x = 0;
+        }
+        else if (m_x > maxXlineBelow)
         {
             m_x = maxXlineBelow;
         }
