@@ -12,14 +12,21 @@
 class Buffer {
 private:
     std::string m_filename;
-    std::ifstream m_file;
+    std::ofstream m_fileOutput;
+    bool m_openForWriting;
+
+    bool openFile();
 
 public:
     Buffer();
     Buffer(std::string);
+    ~Buffer();
 
     // TODO is this a bad practice in c++?
     std::vector<std::string> m_lines;
+
+    bool saveFile();
+
 };
 
 

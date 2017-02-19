@@ -8,23 +8,26 @@
 
 Buffer::Buffer()
     : m_filename("Untitled")
-    , m_file(m_filename, std::ifstream::in)
+    , m_openForWriting(false)
+    , m_fileOutput(NULL)
 {
 }
 
 Buffer::Buffer(std::string filename)
     : m_filename(filename)
-    , m_file(filename, std::ifstream::in | std::ifstream::out)
+    , m_openForWriting(false)
+    , m_fileOutput(NULL)
 {
+    std::ifstream file(filename, std::ifstream::out);
     Log::instance()->logMessage("Entered constructor\n");
 
     // TODO move the following to initialize function
-    if (m_file.is_open())
+    if (file.is_open())
     {
-        while(!m_file.eof())
+        while(!file.eof())
         {
             std::string tmp;
-            getline(m_file, tmp);
+            getline(file, tmp);
             m_lines.push_back(tmp);
         }
     }
@@ -33,4 +36,36 @@ Buffer::Buffer(std::string filename)
         Log::instance()->logMessage("Could not open file %s\n", m_filename.c_str());
     }
     Log::instance()->logMessage(m_filename.c_str());
+    file.close();
+}
+bool Buffer::openFile()
+{
+    if (!m_openForWriting)
+    {
+        m_fileOutput.open(m_filename, std::ios::trunc | std::ios::out);
+    }
+
+}
+
+bool Buffer::saveFile()
+{
+    if (!m_openForWriting)
+    {
+        openFile();
+    }
+
+    for (std::string line : m_lines)
+    {
+        m_fileOutput << line;
+        m_fileOutput << "\n";
+    }
+    m_fileOutput.close();
+    return true;
+}
+
+Buffer::~Buffer() {
+    if (m_openForWriting)
+    {
+        m_fileOutput.close();
+    }
 }

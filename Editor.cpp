@@ -5,7 +5,6 @@
 #include "Editor.h"
 #include "Log.h"
 #include <ncurses.h>
-#include <algorithm>
 #include <sstream>
 
 Editor::Editor()
@@ -78,6 +77,9 @@ void Editor::updateStatus()
 
 void Editor::handleInput(int chr)
 {
+    std::string name = keyname(chr);
+    Log::instance()->logMessage("You pressed:%s\n", name.c_str());
+
     switch (chr)
     {
         case KEY_LEFT:
@@ -97,6 +99,12 @@ void Editor::handleInput(int chr)
             moveUp();
             return;
         default:
+            if (name == "^R")
+            {
+                Log::instance()->logMessage("Saving the file\n");
+                saveFile();
+                return;
+            }
             break;
     }
 
@@ -129,6 +137,11 @@ void Editor::handleInputInNormalMode(int chr)
             break;
     }
 
+}
+
+void Editor::saveFile()
+{
+    m_buffer->saveFile();
 }
 
 void Editor::handleInputInInsertMode(int chr)

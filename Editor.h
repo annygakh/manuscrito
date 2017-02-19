@@ -46,6 +46,8 @@ public:
     void updateStatus();
 
     void handleInput(int);
+
+    void saveFile();
 };
 
 
