@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
 
     while (editor->getMode() != 'x')
     {
-//        editor->updateStatus();
+        editor->updateStatus();
         editor->printBuffer();
         int chr = getch();
         editor->handleInput(chr);

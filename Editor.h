@@ -43,7 +43,7 @@ public:
 
     void printBuffer();
 
-//    void updateStatus();
+    void updateStatus();
 
     void handleInput(int);
 };

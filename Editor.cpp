@@ -51,6 +51,31 @@ void Editor::printBuffer()
     refresh();
 }
 
+void Editor::updateStatus()
+{
+    Log::instance()->logMessage("updateStatus\n");
+    std::string status;
+    switch (m_mode)
+    {
+        case 'n':
+            status = "Normal mode";
+            break;
+        case 'i':
+            status = "Insert mode";
+            break;
+        case 'x':
+            status = "Exiting";
+            break;
+        default:
+            status = "Unknown status";
+            break;
+    }
+
+    attrset(A_UNDERLINE | A_STANDOUT);
+    mvprintw(LINES - 1, 0, status.c_str());
+    attroff(A_UNDERLINE | A_STANDOUT);
+}
+
 void Editor::handleInput(int chr)
 {
     switch (chr)
