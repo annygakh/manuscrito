@@ -63,7 +63,8 @@ bool Buffer::saveFile()
     return true;
 }
 
-Buffer::~Buffer() {
+Buffer::~Buffer()
+{
     if (m_openForWriting)
     {
         m_fileOutput.close();

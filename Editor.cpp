@@ -77,8 +77,8 @@ void Editor::updateStatus()
 
 void Editor::handleInput(int chr)
 {
-    std::string name = keyname(chr);
-    Log::instance()->logMessage("You pressed:%s\n", name.c_str());
+    std::string keyName = keyname(chr);
+    Log::instance()->logMessage("You pressed:%s\n", keyName.c_str());
 
     switch (chr)
     {
@@ -99,7 +99,7 @@ void Editor::handleInput(int chr)
             moveUp();
             return;
         default:
-            if (name == "^R")
+            if (keyName == "^R")
             {
                 Log::instance()->logMessage("Saving the file\n");
                 saveFile();
@@ -259,7 +259,9 @@ void Editor::moveLeft()
     int newX = m_x - 1;
     if (newX < 0) // If we are at the beginning of the line
     {
-        if (m_y > 0) // If we are not at the first line in the file
+        // Allow wrapping - moving left at the beginning of the line
+        // leads us to end up at the end of the line above us.
+        if (m_y > 0)
         {
             int lineSizeLineAbove = m_buffer->m_lines[m_y-1].length();
             if (lineSizeLineAbove == 0)
@@ -284,9 +286,12 @@ void Editor::moveRight()
 {
     int newX = m_x + 1;
     unsigned long maxLineSize = m_buffer->m_lines[m_y].length();
-    if (newX >= maxLineSize)
+    if (newX >= maxLineSize) // Moving right at the end of the line
     {
-        if (m_y + 1 < m_buffer->m_lines.size()) {
+        // Allow wrapping - moving right at the end of one line
+        // leads to ending up at the beginning of the next line
+        if (m_y + 1 < m_buffer->m_lines.size())
+        {
             m_x = 0;
             m_y++;
         }
