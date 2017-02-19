@@ -11,6 +11,7 @@ Buffer::Buffer()
     , m_openForWriting(false)
     , m_fileOutput(NULL)
 {
+    m_lines.push_back("");
 }
 
 Buffer::Buffer(std::string filename)
