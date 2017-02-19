@@ -122,6 +122,12 @@ void Editor::handleInputInInsertMode(int chr)
         m_y++;
         m_x = 0;
     }
+    else if (chr == 127 || chr == 8)
+    {
+        // Erase character
+        Log::instance()->logMessage("Delete or backspace key\n");
+        handleDeleteKey();
+    }
     else
     {
         std::string string = m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
@@ -155,6 +161,34 @@ void Editor::moveUp()
     else
     {
         m_y = 0;
+    }
+    move(m_y, m_x);
+}
+
+void Editor::handleDeleteKey()
+{
+    if (m_x == 0)
+    {
+        if (m_y == 0)
+        {
+            return;
+        }
+        else // Need to join current line with previous line
+        {
+            std::string lineAbove = m_buffer->m_lines[m_y - 1];
+            m_x = lineAbove.length();
+            std::string currLine = m_buffer->m_lines[m_y];
+            m_buffer->m_lines[m_y - 1] = lineAbove.append(currLine);
+            m_buffer->m_lines.erase(m_buffer->m_lines.begin() + m_y);
+            m_y--;
+        }
+    }
+    else // Deleting just one character
+    {
+        std::string currLine = m_buffer->m_lines[m_y];
+        m_buffer->m_lines[m_y] = currLine.erase(m_x - 1, 1);
+        m_x--;
+
     }
     move(m_y, m_x);
 }
@@ -195,7 +229,7 @@ void Editor::moveLeft()
     {
         if (m_y > 0)
         {
-        // TODO allow wrapping
+            // TODO allow wrapping
             int lineSizeLineAbove = m_buffer->m_lines[m_y-1].length();
             m_y--;
             if (lineSizeLineAbove == 0)

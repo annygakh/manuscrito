@@ -25,6 +25,9 @@ private:
     void handleInputInNormalMode(int);
     void handleInputInInsertMode(int);
 
+
+    void handleDeleteKey();
+
     void moveDown();
     void moveUp();
     void moveLeft();
