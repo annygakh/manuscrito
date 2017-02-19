@@ -169,7 +169,7 @@ void Editor::moveDown()
     bool outsideBounds = newY >= maxBufferLines || newY >= maxScreenSize;
     if (outsideBounds)
     {
-        m_y = std::min(maxBufferLines, maxScreenSize);
+        return;
     }
     else
     {
@@ -193,8 +193,20 @@ void Editor::moveLeft()
     int newX = m_x - 1;
     if (newX < 0)
     {
-        m_x = 0;
+        if (m_y > 0)
+        {
         // TODO allow wrapping
+            int lineSizeLineAbove = m_buffer->m_lines[m_y-1].length();
+            m_y--;
+            if (lineSizeLineAbove == 0)
+            {
+                m_x = 0;
+            }
+            else
+            {
+                m_x = lineSizeLineAbove + 1;
+            }
+        }
     }
     else
     {
@@ -206,11 +218,13 @@ void Editor::moveLeft()
 void Editor::moveRight()
 {
     int newX = m_x + 1;
-    int maxLineSize = m_buffer->m_lines[m_y].length();
+    unsigned long maxLineSize = m_buffer->m_lines[m_y].length();
     if (newX >= maxLineSize)
     {
-        m_x = maxLineSize - 1;
-        // TODO allow wrapping as a feature
+        if (m_y + 1 < m_buffer->m_lines.size()) {
+            m_x = 0;
+            m_y++;
+        }
     }
     else
     {
