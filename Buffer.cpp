@@ -4,13 +4,24 @@
 
 #include "Buffer.h"
 #include "Log.h"
-
+#include <sstream>
 
 Buffer::Buffer()
-    : m_filename("Untitled")
-    , m_openForWriting(false)
+    : m_openForWriting(false)
     , m_fileOutput(NULL)
 {
+    time_t t = time(0);   // get time now
+    struct tm * now = localtime( & t );
+    std::stringstream ss;
+    ss << "Untitled"
+         << (now->tm_year + 1900) << '-'
+         << (now->tm_mon + 1) << '-'
+         <<  now->tm_mday << '_'
+         << now->tm_hour << ':'
+         << now->tm_sec
+         << ".txt";
+    m_filename = ss.str();
+
     m_lines.push_back("");
 }
 
