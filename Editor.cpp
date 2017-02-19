@@ -163,7 +163,7 @@ void Editor::handleDeleteKey()
 {
     if (m_x == 0)
     {
-        if (m_y == 0)
+        if (m_y == 0) // If we are at 0,0 and want to delete
         {
             return;
         }
@@ -219,13 +219,11 @@ void Editor::moveDown()
 void Editor::moveLeft()
 {
     int newX = m_x - 1;
-    if (newX < 0)
+    if (newX < 0) // If we are at the beginning of the line
     {
-        if (m_y > 0)
+        if (m_y > 0) // If we are not at the first line in the file
         {
-            // TODO allow wrapping
             int lineSizeLineAbove = m_buffer->m_lines[m_y-1].length();
-            m_y--;
             if (lineSizeLineAbove == 0)
             {
                 m_x = 0;
@@ -234,6 +232,7 @@ void Editor::moveLeft()
             {
                 m_x = lineSizeLineAbove + 1;
             }
+            m_y--;
         }
     }
     else
