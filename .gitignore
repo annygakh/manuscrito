@@ -1,5 +1,4 @@
 .idea/*
 *.o
-*.txt
 *.out
 *dSYM/
