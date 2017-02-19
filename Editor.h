@@ -8,6 +8,12 @@
 #include <string>
 #include "Buffer.h"
 
+enum Action
+{
+    NONE,
+    SAVE_FILE
+};
+
 class Editor {
 private:
     Buffer * m_buffer;
@@ -16,15 +22,23 @@ private:
      * x - exit mode
      * n - normal mode
      * i - insert mode
+     * p - prompt mode
      * */
     char m_mode;
+    char m_previousMode;
 
     int m_x, m_y;
+    int m_prevX, m_prevY;
+
+    // When the user writes anything while being prompted, it appears here
+    std::string m_commandSoFar;
+
+    Action m_pendingAction;
 
 
     void handleInputInNormalMode(int);
     void handleInputInInsertMode(int);
-
+    std::string handlePrompt();
 
     void handleDeleteKey();
 
@@ -47,7 +61,9 @@ public:
 
     void handleInput(int);
 
-    void saveFile();
+    void saveFile(std::string filename);
+
+
 };
 
 

@@ -50,20 +50,20 @@ Buffer::Buffer(std::string filename)
     Log::instance()->logMessage(m_filename.c_str());
     file.close();
 }
-bool Buffer::openFile()
+bool Buffer::openFile(std::string filename)
 {
     if (!m_openForWriting)
     {
-        m_fileOutput.open(m_filename, std::ios::trunc | std::ios::out);
+        m_fileOutput.open(filename, std::ios::trunc | std::ios::out);
     }
 
 }
 
-bool Buffer::saveFile()
+bool Buffer::saveFile(std::string filename)
 {
     if (!m_openForWriting)
     {
-        openFile();
+        openFile(filename == "" ? m_filename : filename);
     }
 
     for (std::string line : m_lines)

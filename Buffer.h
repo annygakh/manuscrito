@@ -15,7 +15,7 @@ private:
     std::ofstream m_fileOutput;
     bool m_openForWriting;
 
-    bool openFile();
+    bool openFile(std::string filename);
 
 public:
     Buffer();
@@ -25,7 +25,7 @@ public:
     // TODO is this a bad practice in c++?
     std::vector<std::string> m_lines;
 
-    bool saveFile();
+    bool saveFile(std::string filename = "");
 
 };
 

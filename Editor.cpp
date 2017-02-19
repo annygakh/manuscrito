@@ -11,14 +11,18 @@ Editor::Editor()
     : m_mode('n')
     , m_x(0)
     , m_y(0)
+    , m_commandSoFar("")
+    , m_pendingAction(NONE)
 {
     m_buffer = new Buffer();
 }
 
 Editor::Editor(std::string filename)
-    : m_mode('n')
-    , m_x(0)
-    , m_y(0)
+        : m_mode('n')
+        , m_x(0)
+        , m_y(0)
+        , m_commandSoFar("")
+        , m_pendingAction(NONE)
 {
     m_buffer = new Buffer(filename);
 }
@@ -52,7 +56,6 @@ void Editor::printBuffer()
 
 void Editor::updateStatus()
 {
-    Log::instance()->logMessage("updateStatus\n");
     std::string status;
     switch (m_mode)
     {
@@ -65,20 +68,74 @@ void Editor::updateStatus()
         case 'x':
             status = "Exiting";
             break;
+        case 'p':
+            status = handlePrompt();
+            break;
         default:
             status = "Unknown status";
             break;
     }
 
     attrset(A_UNDERLINE | A_STANDOUT);
-    mvprintw(LINES - 1, 0, status.c_str());
+    int y_status = LINES - 1;
+    int x_status = 0;
+    move(y_status, x_status);
+    clrtoeol();
+    mvprintw(y_status, x_status, status.c_str());
     attroff(A_UNDERLINE | A_STANDOUT);
+    move(m_x, m_y);
+}
+
+std::string Editor::handlePrompt()
+{
+    Log::instance()->logMessage("Handle prompt\n");
+    std::string status;
+    switch (m_pendingAction)
+    {
+        case SAVE_FILE:
+            status = "Enter name for file:";
+            status.append(m_commandSoFar);
+            break;
+        case NONE:
+        default:
+            status = "Unknown status";
+            break;
+    }
+    m_y = LINES - 1;
+    m_x = status.length();
+
+    return status;
 }
 
 void Editor::handleInput(int chr)
 {
     std::string keyName = keyname(chr);
     Log::instance()->logMessage("You pressed:%s\n", keyName.c_str());
+
+    if (m_mode == 'p' && (char) chr != '\n')
+    {
+        std::stringstream ss;
+        ss << (char) chr;
+        m_commandSoFar.append(ss.str());
+    }
+    else if (m_mode == 'p' && chr == '\n')
+    {
+        m_mode = m_previousMode;
+
+        // TODO handle end of command in prompt mode
+        switch(m_pendingAction)
+        {
+            case SAVE_FILE:
+                saveFile(m_commandSoFar);
+                m_x = m_prevX;
+                m_y = m_prevY;
+                break;
+            default:
+                break;
+        }
+        m_commandSoFar.clear();
+        return;
+    }
 
     switch (chr)
     {
@@ -102,7 +159,11 @@ void Editor::handleInput(int chr)
             if (keyName == "^R")
             {
                 Log::instance()->logMessage("Saving the file\n");
-                saveFile();
+                m_previousMode = m_mode;
+                m_pendingAction = SAVE_FILE;
+                m_mode = 'p';
+                m_prevX = m_x;
+                m_prevY = m_y;
                 return;
             }
             break;
@@ -139,9 +200,9 @@ void Editor::handleInputInNormalMode(int chr)
 
 }
 
-void Editor::saveFile()
+void Editor::saveFile(std::string filename)
 {
-    m_buffer->saveFile();
+    m_buffer->saveFile(filename);
 }
 
 void Editor::handleInputInInsertMode(int chr)
