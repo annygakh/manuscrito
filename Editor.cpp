@@ -124,13 +124,11 @@ void Editor::handleInputInInsertMode(int chr)
     }
     else if (chr == 127 || chr == 8)
     {
-        // Erase character
-        Log::instance()->logMessage("Delete or backspace key\n");
         handleDeleteKey();
     }
     else
     {
-        std::string string = m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
+        m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
         m_x++;
     }
 
@@ -139,26 +137,22 @@ void Editor::handleInputInInsertMode(int chr)
 
 void Editor::moveUp()
 {
-    int minY = 0;
-    if (m_y > minY)
+    if (m_y > 0)
     {
-        // if the line above is shorter then current line
+
         int maxXlineAbove = m_buffer->m_lines[m_y - 1].length() - 1;
-        if (maxXlineAbove == -1)
+        if (maxXlineAbove == -1) // If the line above is empty
         {
             m_x = 0;
         }
-        else if (m_x > maxXlineAbove)
+        else if (m_x > maxXlineAbove) // if the line above is shorter then current line
         {
 
             m_x = maxXlineAbove;
         }
-        else
-        {
-        }
         m_y = m_y - 1;
     }
-    else
+    else // If we are at the top of our file
     {
         m_y = 0;
     }
