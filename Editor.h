@@ -38,9 +38,18 @@ private:
 
     void handleInputInNormalMode(int);
     void handleInputInInsertMode(int);
+    void handleInputInPromptMode(int);
     std::string handlePrompt();
 
     void handleDeleteKey();
+    void handleEnterKey();
+
+    void handleMoveUpNormalInsert();
+    void handleMoveDownNormalInsert();
+    void handleMoveLeftNormalInsert();
+    void handleDeleteKeyInsertMode();
+    void handleEnterKeyInsertMode();
+    void handleEnterKeyPromptMode();
 
     void moveDown();
     void moveUp();
@@ -64,6 +73,7 @@ public:
     void saveFile(std::string filename);
 
 
+    void handleMoveRightNormalInsert();
 };
 
 

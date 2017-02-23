@@ -155,6 +155,10 @@ void Editor::handleInput(int chr)
             Log::instance()->logMessage("Moving up\n");
             moveUp();
             return;
+        case 8:
+        case 127:
+            handleDeleteKey();
+            return;
         default:
             if (keyName == "^R")
             {
@@ -221,10 +225,6 @@ void Editor::handleInputInInsertMode(int chr)
         m_y++;
         m_x = 0;
     }
-    else if (chr == 127 || chr == 8)
-    {
-        handleDeleteKey();
-    }
     else
     {
         m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
@@ -234,7 +234,7 @@ void Editor::handleInputInInsertMode(int chr)
 }
 
 
-void Editor::moveUp()
+void Editor::handleMoveUpNormalInsert()
 {
     if (m_y > 0)
     {
@@ -258,7 +258,23 @@ void Editor::moveUp()
     move(m_y, m_x);
 }
 
-void Editor::handleDeleteKey()
+void Editor::moveUp()
+{
+    switch (m_mode)
+    {
+        case 'i':
+        case 'n':
+            handleMoveUpNormalInsert();
+            break;
+        case 'p':
+            // TODO allow scrolling through history
+            break;
+        default:
+            break;
+    }
+}
+
+void Editor::handleDeleteKeyInsertMode()
 {
     if (m_x == 0)
     {
@@ -286,7 +302,24 @@ void Editor::handleDeleteKey()
     move(m_y, m_x);
 }
 
-void Editor::moveDown()
+void Editor::handleDeleteKey()
+{
+    switch (m_mode)
+    {
+        case 'i':
+            handleDeleteKeyInsertMode();
+            break;
+        case 'n':
+            break;
+        case 'p':
+            // TODO
+            break;
+        default:
+            break;
+    }
+}
+
+void Editor::handleMoveDownNormalInsert()
 {
     int maxBufferLines = m_buffer->m_lines.size();
     int maxScreenSize = LINES;
@@ -315,7 +348,23 @@ void Editor::moveDown()
     move(m_y, m_x);
 }
 
-void Editor::moveLeft()
+void Editor::moveDown()
+{
+    switch (m_mode)
+    {
+        case 'i':
+        case 'n':
+            handleMoveDownNormalInsert();
+            break;
+        case 'p':
+            // TODO allow scrolling through history
+            break;
+        default:
+            break;
+    }
+}
+
+void Editor::handleMoveLeftNormalInsert()
 {
     int newX = m_x - 1;
     if (newX < 0) // If we are at the beginning of the line
@@ -343,7 +392,23 @@ void Editor::moveLeft()
     move(m_y, m_x);
 }
 
-void Editor::moveRight()
+void Editor::moveLeft()
+{
+    switch (m_mode)
+    {
+        case 'i':
+        case 'n':
+            handleMoveLeftNormalInsert();
+            break;
+        case 'p':
+            // TODO
+            break;
+        default:
+            break;
+    }
+}
+
+void Editor::handleMoveRightNormalInsert()
 {
     int newX = m_x + 1;
     unsigned long maxLineSize = m_buffer->m_lines[m_y].length();
@@ -362,4 +427,20 @@ void Editor::moveRight()
         m_x = m_x + 1;
     }
     move(m_y, m_x);
+}
+
+void Editor::moveRight()
+{
+    switch (m_mode)
+    {
+        case 'i':
+        case 'n':
+            handleMoveRightNormalInsert();
+            break;
+        case 'p':
+            // TODO
+            break;
+        default:
+            break;
+    }
 }
