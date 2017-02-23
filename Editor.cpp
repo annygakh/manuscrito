@@ -112,13 +112,6 @@ void Editor::handleInput(int chr)
     std::string keyName = keyname(chr);
     Log::instance()->logMessage("You pressed:%s\n", keyName.c_str());
 
-    if (m_mode == 'p' && (char) chr != '\n')
-    {
-        std::stringstream ss;
-        ss << (char) chr;
-        m_commandSoFar.append(ss.str());
-    }
-
     switch (chr)
     {
         case KEY_LEFT:
@@ -166,6 +159,9 @@ void Editor::handleInput(int chr)
         case 'i':
             handleInputInInsertMode(chr);
             break;
+        case 'p':
+            handleInputInPromptMode(chr);
+            break;
         default:
             break;
     }
@@ -204,6 +200,13 @@ void Editor::handleInputInInsertMode(int chr)
     std::string curr_line = m_buffer->m_lines[m_y];
     m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
     m_x++;
+}
+
+void Editor::handleInputInPromptMode(int chr)
+{
+    std::stringstream ss;
+    ss << (char) chr;
+    m_commandSoFar.append(ss.str());
 }
 
 
