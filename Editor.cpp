@@ -118,24 +118,6 @@ void Editor::handleInput(int chr)
         ss << (char) chr;
         m_commandSoFar.append(ss.str());
     }
-    else if (m_mode == 'p' && chr == '\n')
-    {
-        m_mode = m_previousMode;
-
-        // TODO handle end of command in prompt mode
-        switch(m_pendingAction)
-        {
-            case SAVE_FILE:
-                saveFile(m_commandSoFar);
-                m_x = m_prevX;
-                m_y = m_prevY;
-                break;
-            default:
-                break;
-        }
-        m_commandSoFar.clear();
-        return;
-    }
 
     switch (chr)
     {
@@ -154,6 +136,9 @@ void Editor::handleInput(int chr)
         case KEY_UP:
             Log::instance()->logMessage("Moving up\n");
             moveUp();
+            return;
+        case '\n':
+            handleEnterKey();
             return;
         case 8:
         case 127:
@@ -197,11 +182,13 @@ void Editor::handleInputInNormalMode(int chr)
             m_mode = 'i';
             Log::instance()->logMessage("Insert mode \n");
             break;
+        case 'p':
+            m_mode = 'p';
+            break;
         default:
             // TODO add more
             break;
     }
-
 }
 
 void Editor::saveFile(std::string filename)
@@ -215,22 +202,8 @@ void Editor::handleInputInInsertMode(int chr)
     char chrToInsert = (char) chr;
     ss << chrToInsert;
     std::string curr_line = m_buffer->m_lines[m_y];
-    if (chrToInsert == '\n')
-    {
-        std::string stringBeforeEnter = curr_line.substr(0, m_x );
-//        stringBeforeEnter.append(ss.str());
-        std::string stringAfterEnter = curr_line.substr(m_x);
-        m_buffer->m_lines[m_y] = stringBeforeEnter;
-        m_buffer->m_lines.insert(m_buffer->m_lines.begin() + m_y + 1, stringAfterEnter);
-        m_y++;
-        m_x = 0;
-    }
-    else
-    {
-        m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
-        m_x++;
-    }
-
+    m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
+    m_x++;
 }
 
 
@@ -272,6 +245,54 @@ void Editor::moveUp()
         default:
             break;
     }
+}
+
+void Editor::handleEnterKey()
+{
+    switch (m_mode)
+    {
+        case 'i':
+            handleEnterKeyInsertMode();
+            break;
+        case 'n':
+            break;
+        case 'p':
+            handleEnterKeyPromptMode();
+            break;
+        default:
+            break;
+    }
+}
+
+void Editor::handleEnterKeyInsertMode()
+{
+    std::string curr_line = m_buffer->m_lines[m_y];
+    std::string stringBeforeEnter = curr_line.substr(0, m_x );
+//        stringBeforeEnter.append(ss.str());
+    std::string stringAfterEnter = curr_line.substr(m_x);
+    m_buffer->m_lines[m_y] = stringBeforeEnter;
+    m_buffer->m_lines.insert(m_buffer->m_lines.begin() + m_y + 1, stringAfterEnter);
+    m_y++;
+    m_x = 0;
+
+}
+
+void Editor::handleEnterKeyPromptMode()
+{
+    m_mode = m_previousMode;
+
+    // TODO handle end of command in prompt mode
+    switch(m_pendingAction)
+    {
+        case SAVE_FILE:
+            saveFile(m_commandSoFar);
+            m_x = m_prevX;
+            m_y = m_prevY;
+            break;
+        default:
+            break;
+    }
+    m_commandSoFar.clear();
 }
 
 void Editor::handleDeleteKeyInsertMode()
