@@ -46,6 +46,7 @@ Buffer::Buffer(std::string filename)
     else
     {
         Log::instance()->logMessage("Could not open file %s\n", m_filename.c_str());
+        m_lines.push_back("");
     }
     Log::instance()->logMessage(m_filename.c_str());
     file.close();

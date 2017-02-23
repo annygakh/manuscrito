@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
 
     while (editor->getMode() != 'x')
     {
+        clear(); // TODO figure out an efficient way to only clear out what changed on the screen
         editor->updateStatus();
         editor->printBuffer();
         int chr = getch();
