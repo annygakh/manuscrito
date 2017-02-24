@@ -79,8 +79,6 @@ void Editor::updateStatus()
     attrset(A_UNDERLINE | A_STANDOUT);
     int y_status = LINES - 1;
     int x_status = 0;
-    move(y_status, x_status);
-    clrtoeol();
     mvprintw(y_status, x_status, status.c_str());
     attroff(A_UNDERLINE | A_STANDOUT);
     move(m_x, m_y);
