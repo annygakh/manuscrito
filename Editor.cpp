@@ -13,6 +13,8 @@ Editor::Editor()
     , m_y(0)
     , m_commandSoFar("")
     , m_pendingAction(NONE)
+    , m_enteredPromptMode(false)
+    , m_posWithinCommand(0)
 {
     m_buffer = new Buffer();
 }
@@ -23,6 +25,8 @@ Editor::Editor(std::string filename)
         , m_y(0)
         , m_commandSoFar("")
         , m_pendingAction(NONE)
+        , m_enteredPromptMode(false)
+        , m_posWithinCommand(0)
 {
     m_buffer = new Buffer(filename);
 }
@@ -40,7 +44,7 @@ void Editor::printBuffer()
             printw(line.substr(0, m_x).c_str());
             if (line.length() > m_x )
             {
-                addch(line.at(m_x) | A_REVERSE);
+                addch(line.at(m_x) | A_REVERSE | A_BLINK | A_STANDOUT);
                 printw(line.substr(m_x + 1, line.length() - m_x - 1).c_str());
             }
         }
@@ -92,15 +96,20 @@ std::string Editor::handlePrompt()
     {
         case SAVE_FILE:
             status = "Enter name for file:";
+            m_prompt = "Enter name for file:";
             status.append(m_commandSoFar);
+            m_statusLine = status;
             break;
         case NONE:
         default:
             status = "Unknown status";
             break;
     }
-    m_y = LINES - 1;
-    m_x = status.length();
+    if (!m_enteredPromptMode)
+    {
+        m_y = LINES - 1;
+        m_x = status.length();
+    }
 
     return status;
 }
@@ -136,7 +145,7 @@ void Editor::handleInput(int chr)
             handleDeleteKey();
             return;
         default:
-            if (keyName == "^R")
+            if (keyName == "^R" && m_mode != 'p')
             {
                 Log::instance()->logMessage("Saving the file\n");
                 m_previousMode = m_mode;
@@ -146,6 +155,11 @@ void Editor::handleInput(int chr)
                 m_prevY = m_y;
                 return;
             }
+            else if (keyName == "^R" && m_mode == 'p')
+            {
+                return;
+            }
+
             break;
     }
 
@@ -180,7 +194,6 @@ void Editor::handleInputInNormalMode(int chr)
             m_mode = 'p';
             break;
         default:
-            // TODO add more
             break;
     }
 }
@@ -202,9 +215,12 @@ void Editor::handleInputInInsertMode(int chr)
 
 void Editor::handleInputInPromptMode(int chr)
 {
+    m_enteredPromptMode = true;
     std::stringstream ss;
     ss << (char) chr;
-    m_commandSoFar.append(ss.str());
+    m_commandSoFar.insert(m_posWithinCommand, ss.str());
+    m_posWithinCommand++;
+    m_x++;
 }
 
 
@@ -282,7 +298,6 @@ void Editor::handleEnterKeyPromptMode()
 {
     m_mode = m_previousMode;
 
-    // TODO handle end of command in prompt mode
     switch(m_pendingAction)
     {
         case SAVE_FILE:
@@ -294,6 +309,10 @@ void Editor::handleEnterKeyPromptMode()
             break;
     }
     m_commandSoFar.clear();
+    m_prompt.clear();
+    m_statusLine.clear();
+    m_posWithinCommand = 0;
+    m_enteredPromptMode = false;
 }
 
 void Editor::handleDeleteKeyInsertMode()
@@ -324,6 +343,10 @@ void Editor::handleDeleteKeyInsertMode()
     move(m_y, m_x);
 }
 
+void Editor::handleDeleteKeyPromptMode()
+{
+}
+
 void Editor::handleDeleteKey()
 {
     switch (m_mode)
@@ -334,7 +357,7 @@ void Editor::handleDeleteKey()
         case 'n':
             break;
         case 'p':
-            // TODO
+            handleDeleteKeyPromptMode();
             break;
         default:
             break;
@@ -423,7 +446,7 @@ void Editor::moveLeft()
             handleMoveLeftNormalInsert();
             break;
         case 'p':
-            // TODO
+            handleMoveLeftPromptMode();
             break;
         default:
             break;
@@ -451,6 +474,27 @@ void Editor::handleMoveRightNormalInsert()
     move(m_y, m_x);
 }
 
+void Editor::handleMoveRightPromptMode()
+{
+    int status_line_length = m_statusLine.length();
+    bool cursor_at_the_end_of_status_line = m_x  == status_line_length ;
+    if (!cursor_at_the_end_of_status_line)
+    {
+        m_x++;
+        m_posWithinCommand++;
+    }
+}
+
+void Editor::handleMoveLeftPromptMode()
+{
+    int status_length = m_prompt.length();
+    if (m_x > status_length)
+    {
+        m_x--;
+        m_posWithinCommand--;
+    }
+}
+
 void Editor::moveRight()
 {
     switch (m_mode)
@@ -460,7 +504,7 @@ void Editor::moveRight()
             handleMoveRightNormalInsert();
             break;
         case 'p':
-            // TODO
+            handleMoveRightPromptMode();
             break;
         default:
             break;

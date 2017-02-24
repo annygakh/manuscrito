@@ -32,6 +32,14 @@ private:
 
     // When the user writes anything while being prompted, it appears here
     std::string m_commandSoFar;
+    int m_posWithinCommand;
+
+    // Contains the prompt that user sees
+    std::string m_prompt;
+    bool m_enteredPromptMode;
+
+    // Contains the prompt and the user's input
+    std::string m_statusLine;
 
     Action m_pendingAction;
 
@@ -48,8 +56,13 @@ private:
     void handleMoveDownNormalInsert();
     void handleMoveLeftNormalInsert();
     void handleDeleteKeyInsertMode();
+    void handleDeleteKeyPromptMode();
     void handleEnterKeyInsertMode();
     void handleEnterKeyPromptMode();
+
+    void handleMoveRightNormalInsert();
+    void handleMoveRightPromptMode();
+    void handleMoveLeftPromptMode();
 
     void moveDown();
     void moveUp();
@@ -72,8 +85,6 @@ public:
 
     void saveFile(std::string filename);
 
-
-    void handleMoveRightNormalInsert();
 };
 
 
