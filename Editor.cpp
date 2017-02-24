@@ -98,7 +98,6 @@ std::string Editor::handlePrompt()
             status = "Enter name for file:";
             m_prompt = "Enter name for file:";
             status.append(m_commandSoFar);
-            m_statusLine = status;
             break;
         case NONE:
         default:
@@ -310,7 +309,6 @@ void Editor::handleEnterKeyPromptMode()
     }
     m_commandSoFar.clear();
     m_prompt.clear();
-    m_statusLine.clear();
     m_posWithinCommand = 0;
     m_enteredPromptMode = false;
 }
@@ -345,6 +343,17 @@ void Editor::handleDeleteKeyInsertMode()
 
 void Editor::handleDeleteKeyPromptMode()
 {
+    std::string promptAndCommand = m_prompt;
+    promptAndCommand.append(m_commandSoFar);
+    int status_line_length = promptAndCommand.length();
+
+    int prompt_length = m_prompt.length();
+    if (m_x > prompt_length && m_x <= status_line_length)
+    {
+        m_commandSoFar.erase(m_posWithinCommand - 1, 1);
+        m_x--;
+        m_posWithinCommand--;
+    }
 }
 
 void Editor::handleDeleteKey()
@@ -476,7 +485,9 @@ void Editor::handleMoveRightNormalInsert()
 
 void Editor::handleMoveRightPromptMode()
 {
-    int status_line_length = m_statusLine.length();
+    std::string promptAndCommand = m_prompt;
+    promptAndCommand.append(m_commandSoFar);
+    int status_line_length = promptAndCommand.length();
     bool cursor_at_the_end_of_status_line = m_x  == status_line_length ;
     if (!cursor_at_the_end_of_status_line)
     {

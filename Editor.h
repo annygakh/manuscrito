@@ -38,9 +38,6 @@ private:
     std::string m_prompt;
     bool m_enteredPromptMode;
 
-    // Contains the prompt and the user's input
-    std::string m_statusLine;
-
     Action m_pendingAction;
 
 
