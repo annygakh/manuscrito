@@ -116,7 +116,7 @@ std::string Editor::handlePrompt()
 void Editor::handleInput(int chr)
 {
     std::string keyName = keyname(chr);
-    Log::instance()->logMessage("You pressed:%s\n", keyName.c_str());
+    Log::instance()->logMessage("You pressed: int=%d keyname=%s\n", chr, keyName.c_str());
 
     switch (chr)
     {
@@ -142,6 +142,9 @@ void Editor::handleInput(int chr)
         case 8:
         case 127:
             handleDeleteKey();
+            return;
+        case 27:
+            handleEscapeKey();
             return;
         default:
             if (keyName == "^R" && m_mode != 'p')
@@ -172,6 +175,30 @@ void Editor::handleInput(int chr)
             break;
         case 'p':
             handleInputInPromptMode(chr);
+            break;
+        default:
+            break;
+    }
+}
+
+void Editor::handleEscapeKey()
+{
+    switch (m_mode)
+    {
+        case 'i':
+            m_mode = 'n';
+            break;
+        case 'n':
+            break;
+        case 'p':
+            // TODO refactor this, because it contains similar code to handleEnterKeyPromptMode()
+            m_mode = m_previousMode;
+            m_commandSoFar.clear();
+            m_prompt.clear();
+            m_posWithinCommand = 0;
+            m_enteredPromptMode = false;
+            m_x = m_prevX;
+            m_y = m_prevY;
             break;
         default:
             break;

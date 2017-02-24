@@ -48,6 +48,7 @@ private:
 
     void handleDeleteKey();
     void handleEnterKey();
+    void handleEscapeKey();
 
     void handleMoveUpNormalInsert();
     void handleMoveDownNormalInsert();
