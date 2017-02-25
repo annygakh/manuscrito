@@ -2,3 +2,4 @@
 *.o
 *.out
 *dSYM/
+cmake-build-debug/*

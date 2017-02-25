@@ -24,14 +24,17 @@ int main(int argc, char** argv) {
     {
         editor = new Editor();
     }
+    editor->printBuffer();
+    editor->updateStatus();
+    refresh();
 
     while (editor->getMode() != 'x')
     {
-        clear(); // TODO figure out an efficient way to only clear out what changed on the screen
-        editor->updateStatus();
-        editor->printBuffer();
         int chr = getch();
         editor->handleInput(chr);
+        clear(); // TODO figure out an efficient way to only clear out what changed on the screen
+        editor->printBuffer();
+        editor->updateStatus();
         refresh();
     }
     refresh();

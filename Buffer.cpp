@@ -9,20 +9,25 @@
 Buffer::Buffer()
     : m_openForWriting(false)
     , m_fileOutput(NULL)
+    , m_filename("")
+{
+    m_lines.push_back("");
+}
+
+std::string Buffer::generateName()
 {
     time_t t = time(0);   // get time now
     struct tm * now = localtime( & t );
     std::stringstream ss;
     ss << "Untitled"
-         << (now->tm_year + 1900) << '-'
-         << (now->tm_mon + 1) << '-'
-         <<  now->tm_mday << '_'
-         << now->tm_hour << ':'
-         << now->tm_sec
-         << ".txt";
-    m_filename = ss.str();
+       << (now->tm_year + 1900) << '-'
+       << (now->tm_mon + 1) << '-'
+       <<  now->tm_mday << '_'
+       << now->tm_hour << ':'
+       << now->tm_sec
+       << ".txt";
+    return ss.str();
 
-    m_lines.push_back("");
 }
 
 Buffer::Buffer(std::string filename)
@@ -47,8 +52,9 @@ Buffer::Buffer(std::string filename)
     {
         Log::instance()->logMessage("Could not open file %s\n", m_filename.c_str());
         m_lines.push_back("");
+        m_filename = "";
     }
-    Log::instance()->logMessage(m_filename.c_str());
+    Log::instance()->logMessage("%s\n", m_filename.c_str());
     file.close();
 }
 bool Buffer::openFile(std::string filename)
@@ -60,11 +66,15 @@ bool Buffer::openFile(std::string filename)
 
 }
 
-bool Buffer::saveFile(std::string filename)
+bool Buffer::saveFile()
 {
     if (!m_openForWriting)
     {
-        openFile(filename == "" ? m_filename : filename);
+        if (!filenameDefined())
+        {
+            m_filename = generateName();
+        }
+        openFile(m_filename);
     }
 
     for (std::string line : m_lines)

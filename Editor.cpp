@@ -37,25 +37,10 @@ void Editor::printBuffer()
 
     for (std::string line : m_buffer->m_lines)
     {
-        move(y, 0);
-        clrtoeol();
-        if (y == m_y && m_mode == 'i')
-        {
-            printw(line.substr(0, m_x).c_str());
-            if (line.length() > m_x )
-            {
-                addch(line.at(m_x) | A_REVERSE | A_BLINK | A_STANDOUT);
-                printw(line.substr(m_x + 1, line.length() - m_x - 1).c_str());
-            }
-        }
-        else
-        {
-            printw(line.c_str());
-        }
+        mvprintw(y, 0, line.c_str());
         y++;
     }
     move(m_y, m_x);
-    refresh();
 }
 
 void Editor::updateStatus()
@@ -85,7 +70,7 @@ void Editor::updateStatus()
     int x_status = 0;
     mvprintw(y_status, x_status, status.c_str());
     attroff(A_UNDERLINE | A_STANDOUT);
-    move(m_x, m_y);
+    move(m_y, m_x);
 }
 
 std::string Editor::handlePrompt()
@@ -129,7 +114,7 @@ void Editor::handleInput(int chr)
             moveRight();
             return;
         case KEY_DOWN:
-            Log::instance()->logMessage("Moving dowssssn\n");
+            Log::instance()->logMessage("Moving down\n");
             moveDown();
             return;
         case KEY_UP:
@@ -226,7 +211,8 @@ void Editor::handleInputInNormalMode(int chr)
 
 void Editor::saveFile(std::string filename)
 {
-    m_buffer->saveFile(filename);
+    m_buffer->setFilename(filename);
+    m_buffer->saveFile();
 }
 
 void Editor::handleInputInInsertMode(int chr)
@@ -271,7 +257,6 @@ void Editor::handleMoveUpNormalInsert()
     {
         m_y = 0;
     }
-    move(m_y, m_x);
 }
 
 void Editor::moveUp()

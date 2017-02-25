@@ -25,8 +25,12 @@ public:
     // TODO is this a bad practice in c++?
     std::vector<std::string> m_lines;
 
-    bool saveFile(std::string filename = "");
+    bool saveFile();
 
+    bool filenameDefined() { return !m_filename.empty(); }
+    void setFilename(std::string filename) { m_filename = filename; }
+
+    std::string generateName();
 };
 
 
