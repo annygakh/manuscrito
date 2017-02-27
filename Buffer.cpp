@@ -7,9 +7,9 @@
 #include <sstream>
 
 Buffer::Buffer()
-    : m_openForWriting(false)
+    :   m_filename("")
     , m_fileOutput(NULL)
-    , m_filename("")
+    , m_openForWriting(false)
 {
     m_lines.push_back("");
 }
@@ -31,9 +31,10 @@ std::string Buffer::generateName()
 }
 
 Buffer::Buffer(std::string filename)
-    : m_filename(filename)
-    , m_openForWriting(false)
+    :   m_filename(filename)
     , m_fileOutput(NULL)
+    , m_openForWriting(false)
+
 {
     std::ifstream file(filename, std::ifstream::out);
     Log::instance()->logMessage("Entered constructor\n");
@@ -63,7 +64,7 @@ bool Buffer::openFile(std::string filename)
     {
         m_fileOutput.open(filename, std::ios::trunc | std::ios::out);
     }
-
+    return true;
 }
 
 bool Buffer::saveFile()

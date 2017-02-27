@@ -7,26 +7,36 @@
 #include <ncurses.h>
 #include <sstream>
 
-Editor::Editor()
+Editor::Editor(int maxLines, int maxCols)
     : m_mode('n')
     , m_x(0)
     , m_y(0)
+    , m_bufferX(0)
+    , m_bufferY(0)
+    , m_bufferTopY(0)
+    , m_maxLines(maxLines - s_numLinesOccupied)
+    , m_maxCols(maxCols - s_numColsOccupied)
     , m_commandSoFar("")
-    , m_pendingAction(NONE)
-    , m_enteredPromptMode(false)
     , m_posWithinCommand(0)
+    , m_enteredPromptMode(false)
+    , m_pendingAction(NONE)
 {
     m_buffer = new Buffer();
 }
 
-Editor::Editor(std::string filename)
+Editor::Editor(std::string filename, int maxLines, int maxCols)
         : m_mode('n')
         , m_x(0)
         , m_y(0)
+        , m_bufferX(0)
+        , m_bufferY(0)
+        , m_bufferTopY(0)
+        , m_maxLines(maxLines - s_numLinesOccupied)
+        , m_maxCols(maxCols - s_numColsOccupied)
         , m_commandSoFar("")
-        , m_pendingAction(NONE)
-        , m_enteredPromptMode(false)
         , m_posWithinCommand(0)
+        , m_enteredPromptMode(false)
+        , m_pendingAction(NONE)
 {
     m_buffer = new Buffer(filename);
 }
@@ -35,11 +45,19 @@ void Editor::printBuffer()
 {
     int y = 0;
 
-    for (std::string line : m_buffer->m_lines)
+    Log::instance()->logMessage("m_bufferTopY:%d\n", m_bufferTopY);
+    std::vector<std::string>::iterator begin =  m_buffer->m_lines.begin() + m_bufferTopY;
+    int bufferLength = m_buffer->m_lines.size();
+    std::vector<std::string>::iterator end = m_buffer->m_lines.begin() + m_bufferTopY +
+            (m_maxLines > bufferLength ? bufferLength : m_maxLines) + 1;
+
+    while (begin != end)
     {
-        mvprintw(y, 0, line.c_str());
+        mvprintw(y, 0, begin->c_str());
         y++;
+        begin++;
     }
+
     move(m_y, m_x);
 }
 
@@ -220,8 +238,8 @@ void Editor::handleInputInInsertMode(int chr)
     std::stringstream ss;
     char chrToInsert = (char) chr;
     ss << chrToInsert;
-    std::string curr_line = m_buffer->m_lines[m_y];
-    m_buffer->m_lines[m_y] = curr_line.insert(m_x, ss.str());
+    std::string curr_line = m_buffer->m_lines[m_bufferY];
+    m_buffer->m_lines[m_bufferY] = curr_line.insert(m_x, ss.str());
     m_x++;
 }
 
@@ -238,10 +256,12 @@ void Editor::handleInputInPromptMode(int chr)
 
 void Editor::handleMoveUpNormalInsert()
 {
-    if (m_y > 0)
+    bool reachedTopBuffer = m_bufferY - 1 < 0;
+    bool outsideScreenBounds = m_y - 1 < 0;
+    if (!outsideScreenBounds || !reachedTopBuffer)
     {
 
-        int maxXlineAbove = m_buffer->m_lines[m_y - 1].length() - 1;
+        int maxXlineAbove = m_buffer->m_lines[m_bufferY - 1].length() - 1;
         if (maxXlineAbove == -1) // If the line above is empty
         {
             m_x = 0;
@@ -251,7 +271,15 @@ void Editor::handleMoveUpNormalInsert()
 
             m_x = maxXlineAbove;
         }
-        m_y = m_y - 1;
+        m_bufferY--;
+        if (outsideScreenBounds)
+        {
+            m_bufferTopY--;
+        }
+        else
+        {
+            m_y--;
+        }
     }
     else // If we are at the top of our file
     {
@@ -294,13 +322,22 @@ void Editor::handleEnterKey()
 
 void Editor::handleEnterKeyInsertMode()
 {
-    std::string curr_line = m_buffer->m_lines[m_y];
+    std::string curr_line = m_buffer->m_lines[m_bufferY];
     std::string stringBeforeEnter = curr_line.substr(0, m_x );
 //        stringBeforeEnter.append(ss.str());
     std::string stringAfterEnter = curr_line.substr(m_x);
-    m_buffer->m_lines[m_y] = stringBeforeEnter;
-    m_buffer->m_lines.insert(m_buffer->m_lines.begin() + m_y + 1, stringAfterEnter);
-    m_y++;
+    m_buffer->m_lines[m_bufferY] = stringBeforeEnter;
+    m_buffer->m_lines.insert(m_buffer->m_lines.begin() + m_bufferY + 1, stringAfterEnter);
+    bool outsideScreenBounds = m_y + 1 >= m_maxLines;
+    if (outsideScreenBounds)
+    {
+        m_bufferTopY++;
+    }
+    else
+    {
+        m_y++;
+    }
+    m_bufferY++;
     m_x = 0;
 
 }
@@ -329,24 +366,35 @@ void Editor::handleDeleteKeyInsertMode()
 {
     if (m_x == 0)
     {
-        if (m_y == 0) // If we are at 0,0 and want to delete
+        bool outsideScreenBounds = m_y - 1 < 0;
+        bool reachedTopOfBuffer = m_bufferY - 1 < 0;
+        if (outsideScreenBounds && reachedTopOfBuffer) // If we are at 0,0 and want to delete
         {
             return;
         }
         else // Need to join current line with previous line
         {
-            std::string lineAbove = m_buffer->m_lines[m_y - 1];
+            std::string lineAbove = m_buffer->m_lines[m_bufferY - 1];
             m_x = lineAbove.length();
-            std::string currLine = m_buffer->m_lines[m_y];
-            m_buffer->m_lines[m_y - 1] = lineAbove.append(currLine);
-            m_buffer->m_lines.erase(m_buffer->m_lines.begin() + m_y);
-            m_y--;
+            std::string currLine = m_buffer->m_lines[m_bufferY];
+            m_buffer->m_lines[m_bufferY - 1] = lineAbove.append(currLine);
+            m_buffer->m_lines.erase(m_buffer->m_lines.begin() + m_bufferY);
+
+            if (outsideScreenBounds)
+            {
+                m_bufferTopY--;
+            }
+            else
+            {
+                m_y--;
+            }
+            m_bufferY--;
         }
     }
     else // Deleting just one character
     {
-        std::string currLine = m_buffer->m_lines[m_y];
-        m_buffer->m_lines[m_y] = currLine.erase(m_x - 1, 1);
+        std::string currLine = m_buffer->m_lines[m_bufferY];
+        m_buffer->m_lines[m_bufferY] = currLine.erase(m_x - 1, 1);
         m_x--;
 
     }
@@ -388,19 +436,20 @@ void Editor::handleDeleteKey()
 void Editor::handleMoveDownNormalInsert()
 {
     int maxBufferLines = m_buffer->m_lines.size();
-    int maxScreenSize = LINES;
+    int maxScreenSize = m_maxLines;
     int newY = m_y + 1;
     Log::instance()->logMessage("buffer_size: %d LINES: %d, new_y: %d\n", m_buffer->m_lines.size(), LINES, newY);
-    // TODO remove '=' by removing -1 from above variables
-    bool outsideBounds = newY >= maxBufferLines || newY >= maxScreenSize;
-    if (outsideBounds)
+    // TODO remove '=' by removing 1 from above variables
+    bool reachedEndBuffer = m_bufferY + 1 >= maxBufferLines;
+    bool outsideScreenBounds = newY >= maxBufferLines || newY >= maxScreenSize;
+    if (outsideScreenBounds && reachedEndBuffer)
     {
         return;
     }
     else
     {
         // if the line below is shorter then current line
-        int maxXlineBelow = m_buffer->m_lines[m_y + 1].length() - 1;
+        int maxXlineBelow = m_buffer->m_lines[m_bufferTopY + 1].length() - 1;
         if (maxXlineBelow == -1)
         {
             m_x = 0;
@@ -409,7 +458,16 @@ void Editor::handleMoveDownNormalInsert()
         {
             m_x = maxXlineBelow;
         }
-        m_y = newY;
+
+        m_bufferY++;
+        if (outsideScreenBounds)
+        {
+            m_bufferTopY++;
+        }
+        else
+        {
+            m_y++;
+        }
     }
     move(m_y, m_x);
 }
@@ -437,9 +495,11 @@ void Editor::handleMoveLeftNormalInsert()
     {
         // Allow wrapping - moving left at the beginning of the line
         // leads us to end up at the end of the line above us.
-        if (m_y > 0)
+        bool outsideScreenBounds = m_y - 1 < 0;
+        bool reachedTopOfBuffer = m_bufferY - 1 < 0;
+        if (!outsideScreenBounds || !reachedTopOfBuffer)
         {
-            int lineSizeLineAbove = m_buffer->m_lines[m_y-1].length();
+            int lineSizeLineAbove = m_buffer->m_lines[m_bufferY-1].length();
             if (lineSizeLineAbove == 0)
             {
                 m_x = 0;
@@ -448,7 +508,16 @@ void Editor::handleMoveLeftNormalInsert()
             {
                 m_x = lineSizeLineAbove + 1;
             }
-            m_y--;
+
+            if (outsideScreenBounds)
+            {
+                m_bufferTopY--;
+            }
+            else
+            {
+                m_y--;
+            }
+            m_bufferY--;
         }
     }
     else
@@ -477,15 +546,28 @@ void Editor::moveLeft()
 void Editor::handleMoveRightNormalInsert()
 {
     int newX = m_x + 1;
-    unsigned long maxLineSize = m_buffer->m_lines[m_y].length();
+    unsigned long maxLineSize = m_buffer->m_lines[m_bufferY].length();
     if (newX >= maxLineSize) // Moving right at the end of the line
     {
         // Allow wrapping - moving right at the end of one line
         // leads to ending up at the beginning of the next line
-        if (m_y + 1 < m_buffer->m_lines.size())
+        if (m_bufferY + 1 < m_buffer->m_lines.size())
         {
+            bool atBottomOfScreen = m_y + 1 >= m_maxLines;
+            if (atBottomOfScreen)
+            {
+                m_bufferTopY++;
+            }
+            else
+            {
+                m_y++;
+            }
+            m_bufferY++;
             m_x = 0;
-            m_y++;
+        }
+        else if (m_x + 1 <= maxLineSize)
+        {
+            m_x++;
         }
     }
     else

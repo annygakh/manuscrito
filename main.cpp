@@ -18,11 +18,11 @@ int main(int argc, char** argv) {
     {
         Log::instance()->logMessage("Provided filename\n");
         std::string filename = argv[1];
-        editor = new Editor(filename);
+        editor = new Editor(filename, LINES, COLS);
     }
     else
     {
-        editor = new Editor();
+        editor = new Editor(LINES, COLS);
     }
     editor->printBuffer();
     editor->updateStatus();
@@ -30,6 +30,9 @@ int main(int argc, char** argv) {
 
     while (editor->getMode() != 'x')
     {
+        editor->setMaxLines(LINES);
+        editor->setMaxCols(COLS);
+        Log::instance()->logMessage("New LINES: %d, COLS: %d\n", LINES, COLS);
         int chr = getch();
         editor->handleInput(chr);
         clear(); // TODO figure out an efficient way to only clear out what changed on the screen

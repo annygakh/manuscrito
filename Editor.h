@@ -14,6 +14,17 @@ enum Action
     SAVE_FILE
 };
 
+/*
+ * Number of lines in the window that are allocated to editor specific features that are listed here.
+ * The actual value is the sum of all lines that features require.
+ * The format is as follows
+ * # of lines - feature
+ * 1 - status line
+ *
+ */
+static int s_numLinesOccupied = 1;
+static int s_numColsOccupied = 0;
+
 class Editor {
 private:
     Buffer * m_buffer;
@@ -27,8 +38,16 @@ private:
     char m_mode;
     char m_previousMode;
 
+    // represents coordinates on the screen
     int m_x, m_y;
     int m_prevX, m_prevY;
+
+    // represents current x and y within our buffer
+    int m_bufferX, m_bufferY;
+    int m_bufferTopY;
+    int m_maxLines;
+    int m_maxCols;
+
 
     // When the user writes anything while being prompted, it appears here
     std::string m_commandSoFar;
@@ -68,12 +87,15 @@ private:
     void moveRight();
 
 public:
-    Editor();
-    Editor(std::string);
+    Editor(int maxLines, int maxCols);
+    Editor(std::string, int maxLines, int maxCols);
 
     char getMode() {
         return m_mode;
     }
+
+    void setMaxLines(int maxLines) { m_maxLines = maxLines - s_numLinesOccupied; }
+    void setMaxCols(int maxCols) { m_maxCols = maxCols - s_numColsOccupied; }
 
     void printBuffer();
 
