@@ -1,5 +1,5 @@
 CC = g++
-CC_FLAGS = -Wall -g3
+CC_FLAGS = -Wall -g3 -std=c++11
 LDFLAGS=-lncurses
 
 EXEC = ./manuscrito.out
