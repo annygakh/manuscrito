@@ -506,7 +506,7 @@ void Editor::handleMoveLeftNormalInsert()
             }
             else
             {
-                m_x = lineSizeLineAbove + 1;
+                m_x = lineSizeLineAbove;
             }
 
             if (outsideScreenBounds)
