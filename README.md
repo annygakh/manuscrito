@@ -15,7 +15,7 @@ In normal mode you can
 - Enter insert mode (i)
 - Exit the editor (Esc)
 
-In normal mode you can
+In insert mode you can
 - Edit text
 - Exit the insert mode, and enter normal mode again (Esc)
 
