@@ -44,6 +44,13 @@ make
 ./manuscrito.out myText.txt # or edit an existing file
 ```
 
+### Handling issues
+If the application exists unexpectedly, you have to reset the terminal screen in order for it to continue displaying text in a normal manner. The program takes care of that by itself if it is exited normaly by pressing x in normal mode.
+
+```
+reset # to reset the terminal screen and remove ncurses' settings
+```
+
 ## Contributing
  
  Suggestions are welcome. Filing of issues is appreciated.
